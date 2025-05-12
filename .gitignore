@@ -1,7 +1,10 @@
 .cursor*
 .env
 .DS_Store
-*__pycache__
+
+__pycache__/
+**/__pycache__/
+
 *.pyc
 *.pyo
 *.pyd
