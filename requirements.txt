@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+psycopg2-binary
+pydantic
+fastapi-users[sqlalchemy]
+fastapi-jwt-auth
+fastapi-cache2
+fastapi-limiter
+fastapi-pagination
+python-dotenv
