@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from functools import lru_cache
+from typing import List
 
 class Settings(BaseSettings):
     app_name: str = Field("EvaluationBackend", env="APP_NAME")
@@ -12,10 +13,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field("HS256", env="JWT_ALGORITHM")
     jwt_access_token_expires: int = Field(3600, env="JWT_ACCESS_TOKEN_EXPIRES")
     redis_url: str = Field("redis://localhost:6379/0", env="REDIS_URL")
+    email_whitelist: List[str] = Field(default_factory=list, env="EMAIL_WHITELIST")
 
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+
+    @property
+    def parsed_email_whitelist(self) -> List[str]:
+        # Parse comma-separated emails into a list
+        return [e.strip() for e in self.email_whitelist] if self.email_whitelist else []
 
 @lru_cache()
 def get_settings() -> Settings:

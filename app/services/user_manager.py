@@ -28,8 +28,12 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     verification_token_secret = settings.jwt_secret_key
 
     async def on_after_register(self, user: User, request=None):
-        # You can add custom logic here (e.g., send welcome email)
-        pass
+        # If the user's email is in the whitelist, set is_verified to True
+        if user.email in settings.parsed_email_whitelist:
+            user.is_verified = True
+            async with AsyncSessionLocal() as session:
+                await session.merge(user)
+                await session.commit()
 
     async def validate_password(self, password: str, user: Union[User, None] = None) -> None:
         if len(password) < 8:
