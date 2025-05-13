@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean, Enum
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Boolean, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
+import uuid
 
 from app.db.base_class import Base
 
@@ -13,7 +14,7 @@ class TestCaseType(str, enum.Enum):
 class TestCase(Base):
     __tablename__ = "test_cases"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=lambda: f"tc_{uuid.uuid4().hex[:8]}")
     name = Column(String, nullable=False)
     type = Column(Enum(TestCaseType), nullable=False)
     input = Column(JSON, nullable=True)  # Can store string or list of strings/images

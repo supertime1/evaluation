@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Enum
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
+import uuid
 
 from app.db.base_class import Base
 
@@ -14,8 +15,8 @@ class RunStatus(str, enum.Enum):
 class Run(Base):
     __tablename__ = "runs"
 
-    id = Column(Integer, primary_key=True, index=True)
-    experiment_id = Column(Integer, ForeignKey("experiments.id"), nullable=False)
+    id = Column(String, primary_key=True, default=lambda: f"run_{uuid.uuid4().hex[:8]}")
+    experiment_id = Column(String, ForeignKey("experiments.id"), nullable=False)
     git_commit = Column(String, nullable=False)
     status = Column(Enum(RunStatus), default=RunStatus.PENDING)
     started_at = Column(DateTime, nullable=True)
