@@ -11,7 +11,6 @@ class Experiment(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     user_id = Column(String, nullable=False, index=True)  # Using string for email/SSO ID
-    config = Column(JSON, nullable=True)  # Store model, RAG, and other configuration
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

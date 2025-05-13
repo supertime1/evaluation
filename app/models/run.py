@@ -21,6 +21,10 @@ class Run(Base):
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Flexible hyperparameters that can store any configuration
+    # This matches deepeval's hyperparameters type: Dict[str, Union[str, int, float, Prompt]]
+    hyperparameters = Column(JSON, nullable=True)
 
     # Relationships
     experiment = relationship("Experiment", back_populates="runs")
