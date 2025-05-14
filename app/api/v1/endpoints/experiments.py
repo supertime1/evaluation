@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.db.session import AsyncSessionLocal
+from app.db.session import get_db
 from app.models.experiment import Experiment
 from app.schemas.experiment import (
     Experiment as ExperimentSchema,
@@ -17,14 +17,6 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
 router = APIRouter()
-
-# Database dependency
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
 
 # Current user dependency
 current_active_user = fastapi_users.current_user(active=True)

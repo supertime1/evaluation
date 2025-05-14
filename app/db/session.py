@@ -7,3 +7,11 @@ settings = get_settings()
 # Use asyncpg for async PostgreSQL support
 engine = create_async_engine(settings.database_url.replace("postgresql://", "postgresql+asyncpg://"), echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+# Dependency for getting a database session
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
