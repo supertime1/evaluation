@@ -23,6 +23,6 @@ from app.schemas.test_result import (
     TestResultCreate,
 )
 
-# Update forward references
-from pydantic import BaseModel
-BaseModel.model_rebuild()
+# # Update forward references
+# from pydantic import BaseModel
+# BaseModel.model_rebuild()

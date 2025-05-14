@@ -6,6 +6,7 @@ from app.schemas.user import UserRead, UserCreate, UserUpdate
 from app.services.user_manager import get_user_manager
 from app.core.config import get_settings
 from uuid import UUID
+import os
 
 settings = get_settings()
 
@@ -15,7 +16,12 @@ SECRET = settings.jwt_secret_key
 jwt_strategy = JWTStrategy(secret=SECRET, lifetime_seconds=settings.jwt_access_token_expires)
 
 # Authentication backend
-cookie_transport = CookieTransport(cookie_name="auth", cookie_max_age=settings.jwt_access_token_expires)
+cookie_secure = os.getenv("APP_ENV") == "production"
+
+cookie_transport = CookieTransport(cookie_name="auth", 
+                                   cookie_max_age=settings.jwt_access_token_expires, 
+                                   cookie_secure=cookie_secure)
+
 auth_backend = AuthenticationBackend(
     name="jwt",
     transport=cookie_transport,

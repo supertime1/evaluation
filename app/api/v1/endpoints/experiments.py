@@ -13,6 +13,8 @@ from app.schemas.experiment import (
 )
 from app.api.v1.endpoints.auth import fastapi_users
 from app.models.user import User
+from sqlalchemy.orm import selectinload
+from sqlalchemy.future import select
 
 router = APIRouter()
 
@@ -80,7 +82,7 @@ async def read_experiment(
     Get experiment by ID with its runs.
     """
     # Get experiment with eager loading of runs
-    query = select(Experiment).where(
+    query = select(Experiment).options(selectinload(Experiment.runs)).where(
         Experiment.id == experiment_id,
         Experiment.user_id == str(current_user.id)
     )

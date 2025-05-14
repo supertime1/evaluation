@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Union
 from pydantic import BaseModel, Field
 from deepeval.test_case import MLLMImage
 from enum import Enum
+from app.schemas.run import TestResult
 
 class TestCaseType(str, Enum):
     LLM = "llm"
@@ -40,7 +41,9 @@ class TestCase(TestCaseBase):
 
 # Schema for test case with results
 class TestCaseWithResults(TestCase):
-    test_results: List["TestResult"] = []
+    test_results: List[TestResult] = []
 
     class Config:
         from_attributes = True 
+
+TestCaseWithResults.model_rebuild()

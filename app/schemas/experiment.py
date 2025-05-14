@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
+from app.schemas.run import Run
 
 # Base schema with common fields
 class ExperimentBase(BaseModel):
@@ -27,7 +28,9 @@ class Experiment(ExperimentBase):
 
 # Schema for experiment with runs
 class ExperimentWithRuns(Experiment):
-    runs: List["Run"] = []
+    runs: List[Run] = []
 
     class Config:
         from_attributes = True 
+
+ExperimentWithRuns.model_rebuild()

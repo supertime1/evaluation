@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Optional, Dict, Union, List
 from pydantic import BaseModel, Field
-from deepeval.prompt import Prompt
 from enum import Enum
 
 from app.schemas.test_result import TestResult
@@ -15,7 +14,7 @@ class RunStatus(str, Enum):
 # Base schema with common fields
 class RunBase(BaseModel):
     git_commit: str
-    hyperparameters: Optional[Dict[str, Union[str, int, float, Prompt]]] = None
+    hyperparameters: Optional[Dict[str, Union[str, int, float]]] = None
 
 # Schema for creating a new run
 class RunCreate(RunBase):
@@ -26,7 +25,7 @@ class RunUpdate(BaseModel):
     status: Optional[RunStatus] = None
     started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
-    hyperparameters: Optional[Dict[str, Union[str, int, float, Prompt]]] = None
+    hyperparameters: Optional[Dict[str, Union[str, int, float]]] = None
 
 # Schema for run response
 class Run(RunBase):
@@ -42,7 +41,9 @@ class Run(RunBase):
 
 # Schema for run with test results
 class RunWithResults(Run):
-    test_results: List["TestResult"] = []
+    test_results: List[TestResult] = []
 
     class Config:
         from_attributes = True 
+
+RunWithResults.model_rebuild()
