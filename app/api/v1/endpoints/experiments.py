@@ -38,6 +38,13 @@ async def create_experiment(
 ) -> ExperimentSchema:
     """
     Create a new experiment.
+
+    Args:
+        experiment_in: The experiment to create.
+        current_user: The current user.
+
+    Returns:
+        The created experiment.
     """
     # Create new experiment
     db_experiment = Experiment(
@@ -63,14 +70,22 @@ async def read_experiments(
 ) -> List[ExperimentSchema]:
     """
     Retrieve experiments for the current user.
+
+    Args:
+        skip: The number of experiments to skip.
+        limit: The maximum number of experiments to return.
+        current_user: The current user.
+
+    Returns:
+        A list of experiments.
     """
     # Build and execute query
     query = select(Experiment).where(Experiment.user_id == str(current_user.id)).offset(skip).limit(limit)
     result = await db.execute(query)
     experiments = result.scalars().all()
-    
     return experiments
 
+# Get a single experiment by ID with its runs
 @router.get("/{experiment_id}", response_model=ExperimentWithRuns)
 async def read_experiment(
     *,
@@ -80,8 +95,14 @@ async def read_experiment(
 ) -> ExperimentWithRuns:
     """
     Get experiment by ID with its runs.
+
+    Args:
+        experiment_id: The ID of the experiment to get.
+        current_user: The current user.
+
+    Returns:
+        The experiment with its runs.
     """
-    # Get experiment with eager loading of runs
     query = select(Experiment).options(selectinload(Experiment.runs)).where(
         Experiment.id == experiment_id,
         Experiment.user_id == str(current_user.id)
@@ -105,6 +126,14 @@ async def update_experiment(
 ) -> ExperimentSchema:
     """
     Update an experiment.
+
+    Args:
+        experiment_id: The ID of the experiment to update.
+        experiment_in: The experiment to update.
+        current_user: The current user.
+
+    Returns:
+        The updated experiment.
     """
     # Get experiment
     query = select(Experiment).where(
@@ -139,6 +168,13 @@ async def delete_experiment(
 ) -> ExperimentSchema:
     """
     Delete an experiment.
+
+    Args:
+        experiment_id: The ID of the experiment to delete.
+        current_user: The current user.
+
+    Returns:
+        The deleted experiment.
     """
     # Get experiment
     query = select(Experiment).where(
