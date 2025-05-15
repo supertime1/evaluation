@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, experiments, runs, test_results
+from app.api.v1.endpoints import auth, experiments, runs, test_results, test_cases
 
 router = APIRouter()
 
@@ -25,4 +25,11 @@ router.include_router(
     test_results.router,
     prefix="/test-results",
     tags=["test-results"],
+)
+
+# Include test case routes
+router.include_router(
+    test_cases.router,
+    prefix="/test-cases",
+    tags=["test-cases"],
 )
