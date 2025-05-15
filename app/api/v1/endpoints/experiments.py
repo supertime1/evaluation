@@ -21,6 +21,7 @@ router = APIRouter()
 # Current user dependency
 current_active_user = fastapi_users.current_user(active=True)
 
+
 @router.post("/", response_model=ExperimentSchema)
 async def create_experiment(
     *,
@@ -52,6 +53,7 @@ async def create_experiment(
     
     return db_experiment
 
+
 @router.get("/", response_model=List[ExperimentSchema])
 async def read_experiments(
     *,
@@ -77,7 +79,7 @@ async def read_experiments(
     experiments = result.scalars().all()
     return experiments
 
-# Get a single experiment by ID with its runs
+
 @router.get("/{experiment_id}", response_model=ExperimentWithRuns)
 async def read_experiment(
     *,
@@ -150,13 +152,13 @@ async def update_experiment(
     
     return experiment
 
+
 @router.delete("/{experiment_id}", response_model=ExperimentSchema)
 async def delete_experiment(
     *,
     db: AsyncSession = Depends(get_db),
     experiment_id: str,
     current_user: User = Depends(current_active_user),
-    background_tasks: BackgroundTasks
 ) -> ExperimentSchema:
     """
     Delete an experiment.
