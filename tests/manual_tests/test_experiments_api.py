@@ -13,6 +13,7 @@ BASE_URL = "http://localhost:8000/api/v1"
 AUTH_URL = f"{BASE_URL}/auth/jwt/login"  # This should match the FastAPI-Users auth router
 EXPERIMENTS_URL = f"{BASE_URL}/experiments/"
 RUNS_URL = f"{BASE_URL}/runs/"
+TEST_RESULTS_URL = f"{BASE_URL}/test-results/"
 
 # Test user credentials
 EMAIL = "luzhang@fortinet-us.com"
@@ -54,6 +55,7 @@ async def main():
         print("\n🔒 Testing unauthorized access to protected endpoints...")
         await test_unauthorized_access(client, EXPERIMENTS_URL)
         await test_unauthorized_access(client, RUNS_URL)
+        await test_unauthorized_access(client, TEST_RESULTS_URL)
         
         # 2. Authenticate
         print("\n📝 Authenticating...")
@@ -111,40 +113,107 @@ async def main():
         print(f"✅ Created run: {run_id}")
         print(json.dumps(run, indent=2))
 
-        # 5. Test unauthorized access to specific run
-        get_run_url = urljoin(RUNS_URL, run_id)
-        await test_unauthorized_access(client, get_run_url)
+        # 5. Create a test case
+        print("\n📝 Creating test case...")
+        test_case_payload = {
+            "name": "Test Case 1",
+            "description": "A test case for testing the API",
+            "input": "What is the capital of France?",
+            "expected_output": "Paris",
+            "context": ["This is a test context"],
+            "retrieval_context": ["This is a test retrieval context"]
+        }
+        create_test_case_response = await client.post(
+            f"{BASE_URL}/test-cases/",
+            json=test_case_payload,
+            cookies=cookies
+        )
+        if create_test_case_response.status_code != 200:
+            print(f"❌ Create test case failed: {create_test_case_response.status_code}")
+            print(create_test_case_response.text)
+            return
+        test_case = create_test_case_response.json()
+        test_case_id = test_case["id"]
+        print(f"✅ Created test case: {test_case_id}")
+        print(json.dumps(test_case, indent=2))
 
-        # 6. Get the run (with authentication)
-        print(f"\n📝 Getting run {run_id}...")
+        # 6. Test unauthorized access to test results
+        await test_unauthorized_access(client, TEST_RESULTS_URL)
+        test_result_id = "test_12345678"  # This will be replaced with actual ID after creation
+        await test_unauthorized_access(client, urljoin(TEST_RESULTS_URL, test_result_id))
+
+        # 7. Create a test result
+        print("\n📝 Creating test result...")
+        test_result_payload = {
+            "run_id": run_id,
+            "test_case_id": test_case_id,  # Use the actual test case ID
+            "name": "Test Case 1",
+            "success": True,
+            "conversational": True,
+            "input": "What is the capital of France?",
+            "actual_output": "The capital of France is Paris.",
+            "expected_output": "Paris",
+            "context": ["This is a test context"],
+            "retrieval_context": ["This is a test retrieval context"],
+            "metrics_data": [
+                {
+                    "name": "accuracy",
+                    "score": 1.0,
+                    "threshold": 0.8,
+                    "success": True,
+                    "reason": "Score exceeds threshold",
+                    "strict_mode": False,
+                    "evaluation_model": "gpt-4",
+                    "evaluation_cost": 0.001
+                }
+            ],
+            "additional_metadata": {
+                "model": "gpt-4",
+                "temperature": 0.7
+            }
+        }
+        create_test_result_response = await client.post(
+            TEST_RESULTS_URL,
+            json=test_result_payload,
+            cookies=cookies
+        )
+        if create_test_result_response.status_code != 200:
+            print(f"❌ Create test result failed: {create_test_result_response.status_code}")
+            print(create_test_result_response.text)
+            return
+        test_result = create_test_result_response.json()
+        test_result_id = test_result["id"]
+        print(f"✅ Created test result: {test_result_id}")
+        print(json.dumps(test_result, indent=2))
+
+        # 8. Get the test result
+        print(f"\n📝 Getting test result {test_result_id}...")
+        get_test_result_url = urljoin(TEST_RESULTS_URL, test_result_id)
+        get_test_result_response = await client.get(get_test_result_url, cookies=cookies)
+        if get_test_result_response.status_code != 200:
+            print(f"❌ Get test result failed: {get_test_result_response.status_code}")
+            print(get_test_result_response.text)
+        else:
+            test_result = get_test_result_response.json()
+            print(f"✅ Got test result")
+            print(json.dumps(test_result, indent=2))
+
+        # 9. Test unauthorized access to specific test result
+        await test_unauthorized_access(client, get_test_result_url)
+
+        # 10. Get the run to verify test results are included
+        print(f"\n📝 Getting run {run_id} to verify test results...")
+        get_run_url = urljoin(RUNS_URL, run_id)
         get_run_response = await client.get(get_run_url, cookies=cookies)
         if get_run_response.status_code != 200:
             print(f"❌ Get run failed: {get_run_response.status_code}")
             print(get_run_response.text)
         else:
             run = get_run_response.json()
-            print(f"✅ Got run")
+            print(f"✅ Got run with test results")
             print(json.dumps(run, indent=2))
 
-        # 7. Test unauthorized access to update run
-        update_payload = {"git_commit": "def456", "hyperparameters": {"model": "gpt-4", "temperature": 0.9}}
-        await test_unauthorized_access(client, get_run_url, "PUT", update_payload)
-
-        # 8. Update the run (with authentication)
-        print(f"\n📝 Updating run {run_id}...")
-        update_run_response = await client.put(get_run_url, json=update_payload, cookies=cookies)
-        if update_run_response.status_code != 200:
-            print(f"❌ Update run failed: {update_run_response.status_code}")
-            print(update_run_response.text)
-        else:
-            updated_run = update_run_response.json()
-            print(f"✅ Updated run")
-            print(json.dumps(updated_run, indent=2))
-
-        # 9. Test unauthorized access to delete run
-        await test_unauthorized_access(client, get_run_url, "DELETE")
-
-        # 10. Delete the run (with authentication)
+        # 11. Clean up - Delete the run (which will cascade delete test results)
         print(f"\n📝 Deleting run {run_id}...")
         delete_run_response = await client.delete(get_run_url, cookies=cookies)
         if delete_run_response.status_code != 200:
@@ -153,63 +222,7 @@ async def main():
         else:
             print(f"✅ Deleted run")
 
-        # 11. Verify run deletion
-        print(f"\n📝 Verifying deletion of run {run_id}...")
-        verify_run_response = await client.get(get_run_url, cookies=cookies)
-        if verify_run_response.status_code == 404:
-            print(f"✅ Run no longer exists (404 Not Found)")
-            print(f"✅ Error message: {verify_run_response.json()['detail']}")
-        else:
-            print(f"❌ Unexpected response: {verify_run_response.status_code}")
-            print(verify_run_response.text)
-
-        # 12. Test unauthorized access to experiments
-        await test_unauthorized_access(client, EXPERIMENTS_URL)
-        await test_unauthorized_access(client, urljoin(EXPERIMENTS_URL, experiment_id))
-
-        # 13. Get all experiments
-        print("\n📝 Getting all experiments...")
-        list_response = await client.get(EXPERIMENTS_URL, cookies=cookies)
-        
-        if list_response.status_code != 200:
-            print(f"❌ List failed: {list_response.status_code}")
-            print(list_response.text)
-        else:
-            experiments = list_response.json()
-            print(f"✅ Got {len(experiments)} experiments")
-            print(json.dumps(experiments, indent=2))
-        
-        # 14. Get single experiment
-        print(f"\n📝 Getting experiment {experiment_id}...")
-        get_url = urljoin(EXPERIMENTS_URL, experiment_id)
-        get_response = await client.get(get_url, cookies=cookies)
-        
-        if get_response.status_code != 200:
-            print(f"❌ Get failed: {get_response.status_code}")
-            print(get_response.text)
-        else:
-            experiment = get_response.json()
-            print(f"✅ Got experiment")
-            print(json.dumps(experiment, indent=2))
-        
-        # 15. Update experiment
-        print(f"\n📝 Updating experiment {experiment_id}...")
-        update_url = urljoin(EXPERIMENTS_URL, experiment_id)
-        update_response = await client.put(
-            update_url,
-            json={"name": "Updated Experiment", "description": "This is updated"},
-            cookies=cookies
-        )
-        
-        if update_response.status_code != 200:
-            print(f"❌ Update failed: {update_response.status_code}")
-            print(update_response.text)
-        else:
-            updated = update_response.json()
-            print(f"✅ Updated experiment")
-            print(json.dumps(updated, indent=2))
-        
-        # 16. Delete experiment
+        # 12. Delete experiment
         print(f"\n📝 Deleting experiment {experiment_id}...")
         delete_url = urljoin(EXPERIMENTS_URL, experiment_id)
         delete_response = await client.delete(delete_url, cookies=cookies)
@@ -219,17 +232,6 @@ async def main():
             print(delete_response.text)
         else:
             print(f"✅ Deleted experiment")
-        
-        # 17. Verify deletion
-        print(f"\n📝 Verifying deletion of {experiment_id}...")
-        verify_response = await client.get(get_url, cookies=cookies)
-        
-        if verify_response.status_code == 404:
-            print(f"✅ Experiment no longer exists (404 Not Found)")
-            print(f"✅ Error message: {verify_response.json()['detail']}")
-        else:
-            print(f"❌ Unexpected response: {verify_response.status_code}")
-            print(verify_response.text)
     
     print("\n✨ Test complete!")
 

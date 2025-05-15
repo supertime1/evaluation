@@ -12,3 +12,6 @@ __pycache__/
 *.pyz
 *.pywz
 *.pyzw
+
+.pytest_cache/
+.deepeval/
