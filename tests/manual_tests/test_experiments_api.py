@@ -9,9 +9,8 @@ import json
 import httpx
 from urllib.parse import urljoin
 
-# API base URL - update this to match your server
 BASE_URL = "http://localhost:8000/api/v1"
-AUTH_URL = f"{BASE_URL}/auth/jwt/login"  # This should match your FastAPI-Users auth router
+AUTH_URL = f"{BASE_URL}/auth/jwt/login"  # This should match the FastAPI-Users auth router
 EXPERIMENTS_URL = f"{BASE_URL}/experiments/"
 RUNS_URL = f"{BASE_URL}/runs/"
 
