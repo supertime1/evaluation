@@ -16,7 +16,7 @@ class TestCase(Base):
 
     id = Column(String, primary_key=True, default=lambda: f"tc_{uuid.uuid4().hex[:8]}")
     name = Column(String, nullable=False)
-    type = Column(Enum(TestCaseType), nullable=False)
+    type = Column(String, nullable=False)
     input = Column(JSON, nullable=True)  # Can store string or list of strings/images
     expected_output = Column(String, nullable=True)
     context = Column(JSON, nullable=True)  # List of strings

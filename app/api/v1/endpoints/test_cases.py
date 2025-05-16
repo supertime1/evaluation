@@ -6,6 +6,7 @@ from app.schemas.test_case import (
     TestCase as TestCaseSchema,
     TestCaseCreate,
     TestCaseUpdate,
+    TestCaseType,
 )
 from app.api.v1.endpoints.auth import fastapi_users
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,9 +35,14 @@ async def create_test_case(
     Returns:
         The created test case.
     """
+    # check if the test case type is valid
+    valid_types = [t.lower() for t in TestCaseType]
+    if test_case_in.type not in valid_types:
+        raise HTTPException(status_code=400, detail="Invalid test case type")
+    
     db_test_case = TestCase(
         name=test_case_in.name,
-        type=test_case_in.type,
+        type=test_case_in.type.lower(),
         input=test_case_in.input,
         expected_output=test_case_in.expected_output,
         context=test_case_in.context,
@@ -191,3 +197,34 @@ async def delete_test_case(
     await db.commit()
     
     return test_case 
+
+@router.get("/type/{test_case_type}", response_model=list[TestCaseSchema])
+async def read_test_cases_by_type(
+    *,
+    db: AsyncSession = Depends(get_db),
+    test_case_type: str,
+    current_user: User = Depends(current_active_user)
+) -> list[TestCaseSchema]:
+    """
+    Get test cases by type.
+
+    Args:
+        test_case_type: The type of the test case to get.
+        current_user: The current user.
+
+    Returns:
+        List of test cases.
+    """
+    # Convert to uppercase to match database enum values
+    normalized_type = test_case_type.lower()
+    
+    # check if the test case type is valid
+    valid_types = [t.lower() for t in TestCaseType]
+    if normalized_type not in valid_types:
+        raise HTTPException(status_code=400, detail="Invalid test case type")
+    
+    query = select(TestCase).where(TestCase.type == normalized_type, TestCase.user_id == str(current_user.id))
+    result = await db.execute(query)    
+
+    test_cases = result.scalars().all()
+    return test_cases

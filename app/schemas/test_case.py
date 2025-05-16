@@ -13,7 +13,7 @@ class TestCaseType(str, Enum):
 # Base schema with common fields
 class TestCaseBase(BaseModel):
     name: str
-    type: TestCaseType
+    type: str
     input: Optional[Union[str, List[Union[str, MLLMImage]]]] = None
     expected_output: Optional[str] = None
     context: Optional[List[str]] = None

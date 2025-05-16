@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_URL = "http://localhost:8000/api/v1"
-AUTH_URL = f"{BASE_URL}/auth/jwt/login"  # This should match the FastAPI-Users auth router
+LOGIN_URL = f"{BASE_URL}/auth/jwt/login"
 EXPERIMENTS_URL = f"{BASE_URL}/experiments/"
 RUNS_URL = f"{BASE_URL}/runs/"
 TEST_RESULTS_URL = f"{BASE_URL}/test-results/"
@@ -94,7 +94,7 @@ async def setup_other_user(client: httpx.AsyncClient) -> dict:
     # Authenticate as other user
     print(f"📝 Authenticating as other user {OTHER_USER_EMAIL}...")
     auth_response = await client.post(
-        AUTH_URL,
+        LOGIN_URL,
         data={"username": OTHER_USER_EMAIL, "password": OTHER_USER_PASSWORD}
     )
     
@@ -246,7 +246,7 @@ async def test_test_cases_api(client: httpx.AsyncClient, cookies: dict, other_co
     print("\n📝 Creating test case...")
     test_case_payload = {
         "name": "Test Case 1",
-        "type": "llm",  # Changed from "qa" to "llm" which is an allowed value
+        "type": "llm",
         "input": "What is the capital of France?",
         "expected_output": "Paris",
         "context": ["This is a test context"],
@@ -596,7 +596,7 @@ async def ensure_superuser_exists(client: httpx.AsyncClient) -> dict:
     # Authenticate as superuser
     print(f"📝 Authenticating as superuser {SUPERUSER_EMAIL}...")
     auth_response = await client.post(
-        AUTH_URL,
+        LOGIN_URL,
         data={"username": SUPERUSER_EMAIL, "password": SUPERUSER_PASSWORD}
     )
     
@@ -668,13 +668,13 @@ async def main():
         print("\n📝 Authenticating main user...")
         try:
             auth_response = await client.post(
-                AUTH_URL,
+                LOGIN_URL,
                 data={"username": EMAIL, "password": PASSWORD}
             )
             
             if auth_response.status_code not in [200, 204]:
                 print(f"❌ Authentication failed: {auth_response.status_code}")
-                print(f"URL: {AUTH_URL}")
+                print(f"URL: {LOGIN_URL}")
                 print(f"Response: {auth_response.text}")
                 return
                 

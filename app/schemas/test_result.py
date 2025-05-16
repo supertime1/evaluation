@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Any
 from pydantic import BaseModel, Field
 from deepeval.test_case import MLLMImage
 from deepeval.test_run import MetricData
@@ -15,7 +15,7 @@ class TestResultBase(BaseModel):
     expected_output: Optional[str] = None
     context: Optional[List[str]] = None
     retrieval_context: Optional[List[str]] = None
-    metrics_data: Optional[List[MetricData]] = None
+    metrics_data: Optional[List[Dict[str, Any]]] = None
     additional_metadata: Optional[Dict] = None
 
 # Schema for creating a new test result
